@@ -1,0 +1,123 @@
+# OpenControl Development Configuration
+# Optimized for development and testing with reasonable resource requirements
+# Author: Nik Jois <nikjois@llamasearch.ai>
+
+model:
+  model_type: "opencontrol_dev"
+  model_dim: 512
+  num_layers: 8
+  num_heads: 8
+  vocab_size: 8192
+  max_sequence_length: 512
+  
+  # Encoder configurations (using smaller models for development)
+  video_encoder: "vit_base_patch16_224"
+  audio_encoder: "wav2vec2_base_960h"
+  text_encoder: "clip_vit_base_patch32"
+  
+  # Dimensions
+  action_dim: 8
+  proprioception_dim: 16
+  
+  # Training settings
+  dropout: 0.1
+  use_gradient_checkpointing: false  # Disabled for faster development
+  uncertainty_estimation: true
+  
+  # Input specifications
+  video_resolution: [64, 64]  # Smaller for development
+  audio_sample_rate: 16000
+
+training:
+  # Optimizer settings
+  optimizer: "adamw"
+  learning_rate: 1.0e-4
+  weight_decay: 0.01
+  adam_beta1: 0.9
+  adam_beta2: 0.95
+  adam_eps: 1.0e-8
+  
+  # Scheduler settings
+  lr_schedule: "cosine_with_warmup"
+  warmup_steps: 100
+  
+  # Batch and epoch settings
+  batch_size: 8
+  gradient_accumulation_steps: 1
+  num_epochs: 5
+  steps_per_epoch: 100
+  
+  # Performance optimizations
+  mixed_precision: false  # Disabled for debugging
+  gradient_clipping: 1.0
+  
+  # Checkpointing
+  save_interval: 50
+  max_checkpoints: 3
+
+data:
+  data_path: "data/episodes"
+  sequence_length: 32
+  video_resolution: [64, 64]
+  audio_sample_rate: 16000
+  
+  # Data loading
+  num_workers: 2
+  pin_memory: false
+  prefetch_factor: 1
+  
+  # Data augmentation
+  enable_augmentation: false
+  video_jitter: 0.0
+  audio_noise: 0.0
+
+control:
+  # MPC parameters
+  horizon: 10
+  num_samples: 1000
+  num_iterations: 3
+  elite_fraction: 0.2
+  
+  # Real-time constraints
+  control_frequency: 10.0
+  action_bounds: [-1.0, 1.0]
+  
+  # Cost function weights
+  cost_weights:
+    state: 1.0
+    action: 0.1
+    smoothness: 0.5
+    goal: 5.0
+    safety: 10.0
+
+infrastructure:
+  # Distributed training
+  world_size: 1
+  distributed_backend: "gloo"
+  
+  # Checkpointing
+  checkpoint_dir: "checkpoints/dev"
+  checkpoint_interval_steps: 50
+  
+  # Logging
+  log_level: "INFO"
+  log_dir: "logs/dev"
+  
+  # Monitoring
+  wandb_project: "opencontrol-dev"
+  wandb_entity: null
+
+deployment:
+  host: "127.0.0.1"
+  port: 8000
+  workers: 1
+  max_batch_size: 4
+  timeout: 30
+  
+  # Model serving
+  model_path: null
+  device: "auto"
+  
+  # API settings
+  enable_docs: true
+  enable_metrics: true 
